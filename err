@@ -1,8 +1,0 @@
-Traceback (most recent call last):
-  File "daf_fst_faywuh.py", line 214, in <module>
-    main()
-  File "daf_fst_faywuh.py", line 89, in main
-    groups = parse_pop_file(args.pop_file)
-  File "daf_fst_faywuh.py", line 75, in parse_pop_file
-    for line in open(pop_file, "r"):
-FileNotFoundError: [Errno 2] No such file or directory: '../pop_files/CEZ_BLR_YLS.txt'

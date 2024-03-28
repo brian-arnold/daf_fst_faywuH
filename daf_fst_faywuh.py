@@ -117,8 +117,8 @@ def main():
   FilterDP['MinDepthPerInd'] = 4
 
   # polarized_AFs[chromosome] = list of 2-tuples, position and polarized AF
-  focal_pop_AFs = defaultdict(list)
-  sisters_pop_AFs = defaultdict(list)
+  focal_pop_AFs = defaultdict(list) # keys are chromosomes, values are lists of tuples (position, AF for focal pop)
+  sisters_pop_AFs = defaultdict(list) # keys are chromosomes, values are lists of tuples (position, AF dict for all pops, effect, gene name)
   for variant in vcf:
     # only look at biAllelic Sites
     if len(variant.ALT) == 1 and variant.var_type == "snp":
@@ -141,7 +141,15 @@ def main():
 
       pop_pair_AFs = AFs[args.focal_pop] + AFs[args.sister_pop]
       if pop_pair_AFs >= args.min_AF and pop_pair_AFs <= (pop_pair_two_n - args.min_AF):
-        info = tuple( [variant.end, AFs] )
+        effect = "NA"
+        geneName = "NA"
+        for field in variant.INFO:
+          if field[0] == 'ANN':
+            info = field[1]
+            infoList = info.split('|')
+            effect = infoList[1]
+            geneName = infoList[3]
+        info = tuple( [variant.end, AFs, effect, geneName] )
         sisters_pop_AFs[variant.CHROM].append( info )
 
   # compute FST statistic for each window
@@ -174,7 +182,8 @@ def main():
     for snp in sisters_pop_AFs[chrom]:
       DDAF = popgen_stats.compute_DDAF(snp[1], two_n, args)
       derived_AFs = [snp[1][pop] for pop in sorted(snp[1])]
-      r = [chrom, snp[0]] + derived_AFs + [DDAF]
+      effect, geneName = snp[2], snp[3]
+      r = [chrom, snp[0]] + derived_AFs + [DDAF, effect, geneName]
       results.append( list(map( str, r )) )
   with open(args.output_ddaf, 'w') as outfile:
     names = sorted(groups)
